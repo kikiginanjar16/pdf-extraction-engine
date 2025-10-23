@@ -37,6 +37,8 @@ curl -X POST "http://localhost:8000/extract/text"   -H "accept: application/json
 
 **Selected pages (0-based indices)**
 
+The `payload` must be a JSON string sent as a multipart field.
+
 ```bash
 curl -X POST "http://localhost:8000/extract/text/pages"   -H "accept: application/json"   -F 'payload={"pages":[0,2,5]};type=application/json'   -F "file=@/path/to/file.pdf"
 ```
@@ -96,3 +98,25 @@ pytest -q
 
 ## License
 MIT (replace as needed)
+
+
+---
+
+## URL-based Extraction
+
+You can also extract directly from a **PDF URL** (downloaded server-side with size/type checks).
+
+**Full text + metadata from URL**
+```bash
+curl -X POST "http://localhost:8000/extract/text/url"   -H "Content-Type: application/json"   -d '{"url":"https://example.com/sample.pdf"}'
+```
+
+**Selected pages from URL**
+```bash
+curl -X POST "http://localhost:8000/extract/text/pages/url"   -H "Content-Type: application/json"   -d '{"url":"https://example.com/sample.pdf","pages":[0,2,5]}'
+```
+
+> Security & Limits
+> - Only `http`/`https` URLs are allowed.
+> - Size limit follows `MAX_FILE_MB`. We check `Content-Length` and enforce a hard limit on the downloaded bytes.
+> - We verify `Content-Type` contains `pdf` or the URL ends with `.pdf`.

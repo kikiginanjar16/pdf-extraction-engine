@@ -80,7 +80,7 @@ paths:
               properties:
                 payload:
                   type: string
-                  description: JSON string with page indices, e.g. {"pages":[0,2,5]}
+                  description: JSON string with page indices, e.g. {"pages":[0,2,5]} (multipart field name: payload)
                 file:
                   type: string
                   format: binary
@@ -96,5 +96,87 @@ paths:
                   type: string
         "413":
           description: File too large
+        "422":
+          description: PDF parse failed
+
+  /extract/text/url:
+    post:
+      summary: Extract full text & metadata from PDF URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/file.pdf"
+      responses:
+        "200":
+          description: Extracted text and metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filename:
+                    type: string
+                  pages:
+                    type: integer
+                  title:
+                    type: string
+                    nullable: true
+                  author:
+                    type: string
+                    nullable: true
+                  subject:
+                    type: string
+                    nullable: true
+                  keywords:
+                    type: string
+                    nullable: true
+                  text:
+                    type: string
+        "400":
+          description: Bad request (invalid URL or non-PDF)
+        "413":
+          description: Remote file too large
+        "422":
+          description: PDF parse failed
+
+  /extract/text/pages/url:
+    post:
+      summary: Extract text by page indices (0-based) from PDF URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com/file.pdf"
+                pages:
+                  type: array
+                  items:
+                    type: integer
+                  example: [0, 2, 5]
+      responses:
+        "200":
+          description: Map of page index to text
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+        "400":
+          description: Bad request (invalid URL or non-PDF)
+        "413":
+          description: Remote file too large
         "422":
           description: PDF parse failed

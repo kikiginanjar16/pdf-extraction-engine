@@ -12,3 +12,10 @@ class ExtractTextResponse(BaseModel):
 
 class ExtractTextByPagesRequest(BaseModel):
     pages: List[int] = Field(description="0-based page indices to extract")
+
+
+class ExtractFromUrlRequest(BaseModel):
+    url: str = Field(description="HTTPS URL to a PDF file")
+
+class ExtractFromUrlByPagesRequest(ExtractFromUrlRequest):
+    pages: List[int] = Field(description="0-based page indices to extract")
