@@ -97,7 +97,7 @@ pytest -q
 ---
 
 ## License
-MIT (replace as needed)
+Made with love
 
 
 ---
