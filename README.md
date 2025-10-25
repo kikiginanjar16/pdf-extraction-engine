@@ -23,8 +23,8 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ## Endpoints
-- `GET /api/v1/health` — service status
-- `POST /api/v1/extract` — multipart form file field `file` (PDF). Optional `output_json` query/form field (default: `output.json`).
+- `GET /api/v1/health` â€” service status
+- `POST /api/v1/extract` â€” multipart form file field `file` (PDF). Optional `output_json` query/form field (default: `output.json`).
 
 ### Example (curl)
 ```bash
@@ -53,7 +53,7 @@ docker run --rm -p 8000:8000 -v $(pwd):/app pdf-extraction:latest  # macOS/Linux
 
 
 ### URL extraction
-- `POST /api/v1/extract-url` — JSON body: `{ "url": "https://example.com/file.pdf", "output_json": "output.json" }`
+- `POST /api/v1/extract-url` â€” JSON body: `{ "url": "https://example.com/file.pdf", "output_json": "output.json" }`
 
 Example:
 ```bash
