@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+.env
+.env.*
+.venv/
+venv/
+.git/
+.gitignore
+.DS_Store
+*.log
+*.tmp
+output.json
+FS.pdf
+REV2_310323_CALK Konsol_ASM2022.pdf

@@ -1,122 +1,63 @@
-# PDF Extraction Service
+# PDF Extraction API
 
-A minimal **FastAPI** service that extracts text + metadata from PDFs using **PyMuPDF**. Packaged with **Dockerfile** and **docker-compose**.
-
----
+FastAPI-based service to extract text from PDF files using PyMuPDF. Includes a production-ready Dockerfile.
 
 ## Features
-- Fullâ€‘text extraction with metadata (title, author, keywords, pages)
-- Extract by **selected page indices (0-based)**
-- CORS-enabled for browser usage
+- Upload a PDF and get per-page text as JSON
+- Saves extracted output to `output.json`
 - Health check endpoint
-- OpenAPI spec included (`openapi.yaml`)
+- Dockerized with Python 3.11 slim image
 
----
+## Requirements
+- Python 3.10+
+- Or Docker
 
-## Quickstart
-
+## Install (local)
 ```bash
-# 1) Clone / copy this folder, then:
-cp .env.example .env
-
-# 2) Build & run
-docker compose up --build -d
-
-# 3) API docs (FastAPI Swagger UI)
-# (OpenAPI file also provided at project root)
-open http://localhost:8000/docs
-```
-
-### cURL Examples
-
-**Full text + metadata**
-
-```bash
-curl -X POST "http://localhost:8000/extract/text"   -H "accept: application/json"   -H "Content-Type: multipart/form-data"   -F "file=@/path/to/file.pdf"
-```
-
-**Selected pages (0-based indices)**
-
-The `payload` must be a JSON string sent as a multipart field.
-
-```bash
-curl -X POST "http://localhost:8000/extract/text/pages"   -H "accept: application/json"   -F 'payload={"pages":[0,2,5]};type=application/json'   -F "file=@/path/to/file.pdf"
-```
-
----
-
-## OpenAPI (Standalone)
-
-An explicit OpenAPI spec is available at **`openapi.yaml`**. You can import it into Postman/Insomnia/Stoplight or generate SDKs.
-
-Example import (with `openapi-generator-cli`, requires Java):
-```bash
-openapi-generator-cli generate -i openapi.yaml -g typescript-fetch -o ./sdk-ts
-```
-
----
-
-## Configuration
-
-Environment variables (`.env`):
-
-| Key | Default | Description |
-| --- | --- | --- |
-| `APP_NAME` | `pdf-extractor` | App name shown in docs |
-| `MAX_FILE_MB` | `20` | Max upload size in MB |
-| `LOG_LEVEL` | `info` | Logging level |
-| `CORS_ALLOW_ORIGINS` | `*` | Comma-separated origins |
-
----
-
-## Development (without Docker)
-
-```bash
-python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload
 ```
 
-Run tests:
-
+## Run (local)
 ```bash
-pip install pytest
-pytest -q
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
----
+## Endpoints
+- `GET /api/v1/health` — service status
+- `POST /api/v1/extract` — multipart form file field `file` (PDF). Optional `output_json` query/form field (default: `output.json`).
 
-## Notes & Extensions
-- **OCR for scanned PDFs**: add `pytesseract` + `pdf2image` and a new `/extract/ocr` endpoint (requires Tesseract & poppler).
-- **Table extraction**: integrate `pdfplumber` or **Camelot** (requires Ghostscript).
-- **RAG chunking**: split text by paragraphs/tokens; keep page anchors (`get_text("blocks")`) for citations.
-- **Security**: size/type validation, rate limiting, and optionally antivirus scanning.
-- **Ops**: run behind NGINX for TLS and client max body size, add Prometheus metrics & structured logging.
-- **Containers**: use non-root user, set resource limits in `docker-compose.yml` (mem/cpu) for prod.
-
----
-
-## License
-MIT (replace as needed)
-
-
----
-
-## URL-based Extraction
-
-You can also extract directly from a **PDF URL** (downloaded server-side with size/type checks).
-
-**Full text + metadata from URL**
+### Example (curl)
 ```bash
-curl -X POST "http://localhost:8000/extract/text/url"   -H "Content-Type: application/json"   -d '{"url":"https://example.com/sample.pdf"}'
+curl -F "file=@FS.pdf" http://localhost:8000/api/v1/extract > output.json
 ```
 
-**Selected pages from URL**
+## Docker
+Build:
 ```bash
-curl -X POST "http://localhost:8000/extract/text/pages/url"   -H "Content-Type: application/json"   -d '{"url":"https://example.com/sample.pdf","pages":[0,2,5]}'
+docker build -t pdf-extraction:latest .
+```
+Run:
+```bash
+docker run --rm -p 8000:8000 pdf-extraction:latest
 ```
 
-> Security & Limits
-> - Only `http`/`https` URLs are allowed.
-> - Size limit follows `MAX_FILE_MB`. We check `Content-Length` and enforce a hard limit on the downloaded bytes.
-> - We verify `Content-Type` contains `pdf` or the URL ends with `.pdf`.
+## Notes
+- Uploaded files are written to `/tmp` inside the container.
+- The generated `output.json` is inside the container; mount a volume if you want to persist it:
+```bash
+docker run --rm -p 8000:8000 -v %CD%:/app pdf-extraction:latest  # Windows PowerShell
+# or
+docker run --rm -p 8000:8000 -v $(pwd):/app pdf-extraction:latest  # macOS/Linux
+```
+- Large PDFs can be memory intensive; PyMuPDF processes pages sequentially.
+
+
+### URL extraction
+- `POST /api/v1/extract-url` — JSON body: `{ "url": "https://example.com/file.pdf", "output_json": "output.json" }`
+
+Example:
+```bash
+curl -X POST http://localhost:8000/api/v1/extract-url \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://example.com/file.pdf"}'
+```
